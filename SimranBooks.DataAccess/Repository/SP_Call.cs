@@ -13,14 +13,18 @@ namespace SimranBooks.DataAccess.Repository
 {
     public class SP_Call : ISP_Call
     {
+        // access the database
         private readonly ApplicationDbContext _db;
-        private static string ConnectionString = "";
+        private static string ConnectionString = ""; // need to call the stored procedures
 
+        // constructor to open a SQL connection
         public SP_Call(ApplicationDbContext db)
         {
             _db = db;
             ConnectionString = db.Database.GetDbConnection().ConnectionString;
         }
+
+        // implements the ISP_Call interface
         public void Dispose()
         {
             _db.Dispose();
@@ -41,6 +45,7 @@ namespace SimranBooks.DataAccess.Repository
             {
                 sqlCon.Open();
                 return sqlCon.Query<T>(procedurename, param, commandType: System.Data.CommandType.StoredProcedure);
+
             }
         }
 
@@ -50,9 +55,8 @@ namespace SimranBooks.DataAccess.Repository
             {
                 sqlCon.Open();
                 var result = SqlMapper.QueryMultiple(sqlCon, procedurename, param, commandType: System.Data.CommandType.StoredProcedure);
-                var item1 = result.Read<T1>().ToList();
+                var item1 = result.Read<T1>().ToList();  // make sure to add using statement for LINQ
                 var item2 = result.Read<T2>().ToList();
-
 
                 if (item1 != null && item2 != null)
                 {
@@ -63,22 +67,22 @@ namespace SimranBooks.DataAccess.Repository
             return new Tuple<IEnumerable<T1>, IEnumerable<T2>>(new List<T1>(), new List<T2>());
         }
 
-        public T OneRecord<T>(string procedureName, DynamicParameters param = null)
+        public T OneRecord<T>(string procedurename, DynamicParameters param = null)
         {
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                var value = sqlCon.Query<T>(procedureName, param, commandType: System.Data.CommandType.StoredProcedure);
+                var value = sqlCon.Query<T>(procedurename, param, commandType: System.Data.CommandType.StoredProcedure);
                 return (T)Convert.ChangeType(value.FirstOrDefault(), typeof(T));
             }
         }
 
-        public T Single<T>(string procedureName, DynamicParameters param = null)
+        public T Single<T>(string procedurename, DynamicParameters param = null)
         {
             using (SqlConnection sqlCon = new SqlConnection(ConnectionString))
             {
                 sqlCon.Open();
-                return (T)Convert.ChangeType(sqlCon.ExecuteScalar<T>(procedureName, param, commandType: System.Data.CommandType.StoredProcedure), typeof(T));
+                return (T)Convert.ChangeType(sqlCon.ExecuteScalar<T>(procedurename, param, commandType: System.Data.CommandType.StoredProcedure), typeof(T));
             }
         }
     }
